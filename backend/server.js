@@ -4,7 +4,9 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
-app.use(cors());
+
+// Enable CORS so your React app (running on your PC) can talk to this EC2 server
+app.use(cors()); 
 app.use(express.json());
 
 // 1. Database Connection
@@ -22,7 +24,7 @@ const Message = mongoose.model('Message', messageSchema);
 
 // 3. API Routes
 app.get('/messages', async (req, res) => {
-  const allMessages = await Message.find(); // Fetches from DB
+  const allMessages = await Message.find(); 
   res.json(allMessages);
 });
 
@@ -31,9 +33,12 @@ app.post('/messages', async (req, res) => {
     text: req.body.text,
     user: req.body.user
   });
-  await newMessage.save(); // Saves to DB
+  await newMessage.save(); 
   res.status(201).json(newMessage);
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// IMPORTANT: Use 5001 and 0.0.0.0 for Docker/EC2 compatibility
+const PORT = 5001; 
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+});

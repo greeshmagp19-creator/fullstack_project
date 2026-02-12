@@ -4,32 +4,39 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
-  const API_URL = "http://localhost:5001/messages";
+  // Change localhost to your EC2 Public IP
+  const API_URL = "http://13.49.90.144:5001/messages";
 
-  // Fetch initial data
   useEffect(() => {
-    fetch(API_URL).then(res => res.json()).then(data => setMessages(data));
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => setMessages(data))
+      .catch(err => console.error("Error fetching messages:", err));
   }, []);
 
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input) return;
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: input, user: "User" })
-    });
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: input, user: "User" })
+      });
 
-    if (response.ok) {
-      const newMessage = await response.json();
-      setMessages([...messages, newMessage]); // Update UI instantly
-      setInput(""); // Clear box
+      if (response.ok) {
+        const newMessage = await response.json();
+        setMessages([...messages, newMessage]); 
+        setInput(""); 
+      }
+    } catch (err) {
+      console.error("Error sending message:", err);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto', textAlign: 'center' }}>
+    <div style={{ maxWidth: '400px', margin: 'auto', textAlign: 'center', padding: '20px' }}>
       <h2>Interactive Guestbook</h2>
       <form onSubmit={sendMessage}>
         <input 
@@ -41,7 +48,7 @@ function App() {
       </form>
       <hr />
       {messages.map(m => (
-        <p key={m.id}><strong>{m.user}:</strong> {m.text}</p>
+        <p key={m._id}><strong>{m.user}:</strong> {m.text}</p>
       ))}
     </div>
   );
