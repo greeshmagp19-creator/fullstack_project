@@ -4,15 +4,26 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-// 1. Database Connection
+// 1. UPDATED CORS SETTINGS (The "A-OK" Signal)
+app.use(cors({
+  origin: '*', // Allows your CloudFront URL to talk to this backend
+  methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allows the Preflight and Send methods
+  allowedHeaders: ['Content-Type'] // Allows JSON data to be sent
+}));
+
+// 2. MIDDLEWARE ORDER
+app.use(express.json()); // Parses the message text you type
+
+// Optional: Explicitly handle the "Preflight" OPTIONS request
+app.options('*', cors()); 
+
+// 3. Database Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// 2. Data Blueprint (Schema)
+// 4. Data Blueprint (Schema)
 const messageSchema = new mongoose.Schema({
   text: String,
   user: { type: String, default: "Anonymous" },
@@ -20,19 +31,27 @@ const messageSchema = new mongoose.Schema({
 });
 const Message = mongoose.model('Message', messageSchema);
 
-// 3. API Routes
+// 5. API Routes
 app.get('/messages', async (req, res) => {
-  const allMessages = await Message.find(); // Fetches from DB
-  res.json(allMessages);
+  try {
+    const allMessages = await Message.find();
+    res.json(allMessages);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
 });
 
 app.post('/messages', async (req, res) => {
-  const newMessage = new Message({
-    text: req.body.text,
-    user: req.body.user
-  });
-  await newMessage.save(); // Saves to DB
-  res.status(201).json(newMessage);
+  try {
+    const newMessage = new Message({
+      text: req.body.text,
+      user: req.body.user
+    });
+    await newMessage.save();
+    res.status(201).json(newMessage);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save message" });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
