@@ -5,8 +5,7 @@ function App() {
   const [input, setInput] = useState("");
 
   const API_URL = "//13.49.90.144:5001/messages";
-
-  // Fetch initial data
+  
   useEffect(() => {
     fetch(API_URL).then(res => res.json()).then(data => setMessages(data));
   }, []);
