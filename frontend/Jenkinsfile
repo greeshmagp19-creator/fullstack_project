@@ -1,0 +1,84 @@
+
+pipeline{
+    agent any
+    
+    environment{
+        AWS_REGION = "eu-north-1"
+        S3_BUCKET = "fbdsample"
+        CLOUDFRONT_DISTRIBUTION_ID = "E2DPN75SRNM1P4"
+    }
+    
+    options {
+        timestamps()
+    }
+    
+    stages{
+        
+        stage('checkout code') {
+            steps {
+                git branch: 'main',
+                credentialsId: 'github-token-creds',
+                url: 'https://github.com/greeshmagp19-creator/fullstack_project.git'
+            }
+        }
+        
+        stage('check node & NPM') {
+            steps{
+                sh '''
+                  node -v
+                  npm -v
+                '''
+            }
+        }
+        
+        stage ('build') {
+            steps {
+                dir('frontend'){
+                sh 'npm install'
+                sh 'npm run build'
+                }
+            }
+        }
+        stage ('verify build output') {
+            steps {
+                 sh 'ls -la frontend/build'
+            }
+        }
+        stage('deploy to s3'){
+            
+            steps {
+                withAWS(credentials: 'aws-credentials', region: "${AWS_REGION}") {
+                    dir('frontend') {
+                        
+                        sh 'aws s3 sync build/ s3://${S3_BUCKET}/ --delete'
+                    
+                    }
+                }
+                
+            }
+        }
+        stage('invalidate cloudfront'){
+            when {
+                expression { env.CLOUDFRONT_DISTRIBUTION_ID = "E2DPN75SRNM1P4" }
+            }
+            steps {
+                withAWS(credentials: 'aws-credentials', region: "${AWS_REGION}") {
+                    sh '''aws cloudfront create-invalidation \\
+                        --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} \\
+                        --paths "/*"'''
+                }
+                
+            }
+            
+        }
+            
+    }
+    post {
+        success {
+            echo "✅ Frontend deployed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs."
+        }
+    }
+}
