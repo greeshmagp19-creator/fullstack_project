@@ -43,16 +43,17 @@ app.get('/messages', async (req, res) => {
 
 app.post('/messages', async (req, res) => {
   try {
-    const newMessage = new Message({
-      text: req.body.text,
-      user: req.body.user
-    });
+    const { text, user } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "Text is required" });
+    }
+    const newMessage = new Message({ text, user: user || "Anonymous" });
     await newMessage.save();
     res.status(201).json(newMessage);
   } catch (err) {
-    res.status(500).json({ error: "Failed to save message" });
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
