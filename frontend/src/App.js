@@ -4,7 +4,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
-  const API_URL = "http://localhost:5001/messages";
+  const API_URL = "http://13.49.90.144:5001/messages";
 
   // Fetch initial data
   useEffect(() => {
