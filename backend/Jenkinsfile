@@ -62,10 +62,10 @@ EOF
     
     post {
         success {
-            echo "✅ DEPLOYMENT SUCCESSFUL"
+            echo " DEPLOYMENT SUCCESSFUL"
         }
         failure {
-            echo "❌ DEPLOYMENT FAILED"
+            echo " DEPLOYMENT FAILED"
         }
     }
 }

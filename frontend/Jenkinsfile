@@ -75,10 +75,10 @@ pipeline{
     }
     post {
         success {
-            echo "✅ Frontend deployed successfully!"
+            echo " Frontend deployed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed. Check logs."
+            echo " Pipeline failed. Check logs."
         }
     }
 }
